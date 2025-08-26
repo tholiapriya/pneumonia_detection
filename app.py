@@ -11,12 +11,20 @@ from PIL import Image
 # ---------------------------
 @st.cache_resource
 def load_pneumonia_model():
-    url = "https://drive.google.com/uc?id=15GAlu1opKuFLqmJ7cOvaNQf_9FEIY6XW"  # new Drive file ID
+    file_id = "1XZSNBfgBbqTsh7YVEhq8PviRSnRJQAgx"  # your correct file ID
+    url = f"https://drive.google.com/uc?id={file_id}"
     output = "pneumonia_model.h5"
+
     if not os.path.exists(output):
-        gdown.download(url, output, quiet=False)
+        try:
+            gdown.download(url, output, quiet=False)
+        except Exception as e:
+            st.error(f"❌ Failed to download model: {e}")
+            st.stop()
+
     return load_model(output)
 
+# Load model
 model = load_pneumonia_model()
 
 # ---------------------------
@@ -29,10 +37,10 @@ uploaded_file = st.file_uploader("Choose a chest X-ray image...", type=["jpg", "
 
 if uploaded_file is not None:
     img = Image.open(uploaded_file)
-    st.image(img, caption="Uploaded Image", use_container_width=True)  # updated to avoid warning
+    st.image(img, caption="Uploaded Image", use_container_width=True)
 
     # ---------------------------
-    # Preprocess image (auto-adapts to model input)
+    # Preprocess image
     # ---------------------------
     _, h, w, c = model.input_shape  # e.g. (None, 150, 150, 3)
 
@@ -48,7 +56,7 @@ if uploaded_file is not None:
     # Convert to array
     x = image.img_to_array(img)
 
-    # If grayscale, ensure correct shape
+    # Ensure shape matches model input
     if c == 1:
         x = np.expand_dims(x, axis=-1)
 
@@ -58,9 +66,11 @@ if uploaded_file is not None:
     # ---------------------------
     # Prediction
     # ---------------------------
-    prediction = model.predict(x)
-
-    if prediction[0][0] > 0.5:
-        st.error("⚠️ The model predicts **Pneumonia**")
-    else:
-        st.success("✅ The model predicts **Normal**")
+    try:
+        prediction = model.predict(x)
+        if prediction[0][0] > 0.5:
+            st.error("⚠️ The model predicts **Pneumonia**")
+        else:
+            st.success("✅ The model predicts **Normal**")
+    except Exception as e:
+        st.error(f"❌ Prediction failed: {e}")
