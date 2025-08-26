@@ -11,7 +11,7 @@ from PIL import Image
 # ---------------------------
 @st.cache_resource
 def load_pneumonia_model():
-    url = "https://drive.google.com/uc?id=1aZ9JKFvIcqV4I0d9Kf6jcj6qq_-LD_H2"  # your Drive file ID
+    url = "https://drive.google.com/uc?id=15GAlu1opKuFLqmJ7cOvaNQf_9FEIY6XW"  # new Drive file ID
     output = "pneumonia_model.h5"
     if not os.path.exists(output):
         gdown.download(url, output, quiet=False)
